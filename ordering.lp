@@ -7,25 +7,28 @@
 
 % induction base: specified relation on atoms
 pref(F, G) :- succ(F, G).
-% subformulas before superformulas
-pref(F, neg(F)) :- subf(neg(F)).
-pref(F, and(F,G)) :- subf(and(F,G)).
-pref(G, and(F,G)) :- subf(and(F,G)).
-pref(F, box(S, F)) :- subf(box(S, F)).
-% ordering on negations: going back to negated formula
-pref(neg(F), neg(G)) :- subf(neg(F)), subf(neg(G)), pref(F, G).
-% ordering on conjunctions: lexicographic, (arbitrarily) starting with the left conjunct
-pref(and(F1,G1), and(F2,G2)) :- subf(and(F1,G1)), subf(and(F2,G2)), pref(F1, F2).
-pref(and(F,G1), and(F,G2)) :- subf(and(F,G1)), subf(and(F,G2)), pref(G1, G2).
-% ordering on modal formulas: going back to inside formula
-pref(box(S, F), box(U, G)) :- subf(box(S, F)), subf(box(U, G)), pref(F, G).
-%% tie-breaking rules:
-% neg before box
-pref(neg(F), box(S, G)) :- subf(neg(F)), subf(box(S, G)), pref(F, G).
-% box before and
-pref(box(S, F), and(G, H)) :- subf(box(S, F)), subf(and(G, H)), pref(F, G).
-% different standpoint modalities with the same formula: use standpoint hierarchy to break tie
-pref(box(S, F), box(U, F)) :- subf(box(S, F)), subf(box(U, F)), sharpens(S, U), not sharpens(U, S).
+
+% explicitly obtain the size
+atom(A) :- subf(A), succ(A, _).
+atom(A) :- subf(A), succ(_, A).
+
+size(A, 1) :- atom(A).
+size(neg(F), S+1) :- subf(neg(F)), size(F, S).
+size(box(U, F), S+1) :- subf(box(U, F)), size(F, S).
+size(and(F, G), S+T) :- subf(and(F, G)), size(F, S), size(G, T).
+
+% preference based on different sizes
+pref(F, G) :- size(F, S), size(G, T), S < T.
+same_size(F, G) :- size(F, S), size(G, S).
+
+% preference based on same size (tie breaking)
+pref(neg(F), neg(G)) :- same_size(F, G), subf(neg(F)), subf(neg(G)), pref(F, G).
+pref(neg(F), box(S, G)) :- same_size(F, G), subf(neg(F)), subf(box(S, G)).
+pref(box(S, F), box(U, G)) :- same_size(F, G), subf(box(S, F)), subf(box(U, G)), pref(S, U).
+pref(box(S, F), box(S, G)) :- same_size(F, G), subf(box(S, F)), subf(box(S, G)), pref(F, G).
+pref(box(S, F), and(G, H)) :- same_size(box(S, F), and(G, H)), subf(box(S, F)), subf(and(G, H)).
+pref(and(F, G1), and(F, G2)) :- same_size(G1, G2), subf(and(F, G1)), subf(and(F, G2)), pref(G1, G2).
+pref(and(F1, G1), and(F2, G2)) :- same_size(and(F1, G1), and(F2, G2)), subf(and(F1, G1)), subf(and(F2, G2)), pref(F1, F2).
 
 % transitive closure
 pref(X, Z) :- pref(X, Y), pref(Y, Z).
@@ -63,3 +66,12 @@ allouter(S, W, K) :- first(W), nstan(S, W, K).
 allouter(S, W, K) :- allouter(V, K), next(V, W), stan(S, W, K), outer(W, K).
 allouter(S, W, K) :- allouter(V, K), next(V, W), nstan(S, W, K).
 allouter(S, K) :- allouter(S, W, K), last(W).
+
+% temporarily check for unintended properties
+% incomp(F, G) :- subf(F), subf(G), F != G, not pref(F, G), not pref(G, F).
+% incomp :- incomp(_, _).
+
+% cycle :- pref(C, C).
+% cycle(C) :- pref(C, C).
+
+% :- not cycle, not incomp.
