@@ -8,7 +8,9 @@ ENCODING = sffsmm.lp theta.lp propsat.lp unknown.lp ordering.lp standpoints.lp m
 #  (requires extra encoding of all atoms. standpoint names see instances/pcos-aaai.lp)
 # ENCODING = theta.lp propsat.lp unknown.lp ordering.lp standpoints.lp minimality.lp defaults.lp filter.lp
 
-ONE = instances/pcos-aaai.lp
+# ONE = instances/pcos-aaai.lp
+# ONE = instances/potential-error.lp
+ONE = instances/check-defaults-plain.lp
 
 # ONE = instances/asp.lp
 # ONE = instances/coffee.lp
