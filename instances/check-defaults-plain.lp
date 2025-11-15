@@ -27,10 +27,11 @@ form(neg(
                 box(all,o),  % prerequisite
                 box(all,neg(box(all,neg(p)))) % justification 1
             ),   
-            neg(box(s1,p))
+            neg(box(all,p))
         )
     )
 ).
+
 % Box_all[o:-pr,f/f]
 form(neg(
         and(
@@ -46,7 +47,6 @@ form(neg(
     )
 ).
 
-
 % needed 
 succ(all,s1).
 
@@ -60,8 +60,8 @@ succ(f,h).
 % % % % % % % % % % %
 % Instance
 % % % % % % % % % % %
-% form(box(all,a)).
-% form(box(all,c)).
+form(box(all,o)).
+form(box(all,pr)).
 
 % form(box(all,x)). <- uncomment one of these
 % form(box(all,y)). <- uncomment one of these
