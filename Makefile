@@ -1,5 +1,5 @@
 TESTFILES = $(wildcard testfiles/exm*.lp)
-ENCODING = sffsmm.lp theta.lp propsat.lp unknown.lp ordering.lp standpoints.lp minimality.lp defaults.lp # filter.lp
+ENCODING = sffsmm.lp theta.lp propsat.lp unknown.lp ordering.lp standpoints.lp minimality.lp transform.lp defaults.lp # filter.lp
 
 # uncomment the following line instead to get a more compact / insightful representation -- warning, inefficient suited for debugging
 # e.g. for the instance pcos-aaai.lp solving times are:
@@ -11,7 +11,7 @@ ENCODING = sffsmm.lp theta.lp propsat.lp unknown.lp ordering.lp standpoints.lp m
 # ONE = instances/pcos-aaai.lp
 # ONE = instances/potential-error.lp
 # ONE = instances/check-defaults-plain.lp
-ONE = instances/pcos-diagnosis.lp
+ONE = instances/pcos-diagnosis-sh.lp
 
 # ONE = instances/asp.lp
 # ONE = instances/coffee.lp
