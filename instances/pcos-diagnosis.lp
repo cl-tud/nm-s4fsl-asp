@@ -6,13 +6,7 @@
 % (- y or x)
 % --(- y or x)
 % -(y and -x)
-% form(neg(and(y,neg(x)))).  
-
-% T:-p/-p  
-% form(neg(and(                  %  <- uncomment
-%     box(all,neg(box(all,p))),
-%     neg(box(all,neg(p)))
-% ))).  
+form(neg(and(y,neg(x)))).  
 
 % Box_s1[(a and b): -x / p]
 form(neg(
@@ -79,8 +73,8 @@ succ(s2,s3).
 form(box(all,a)).
 form(box(all,c)).
 
-% form(box(all,x)). <- uncomment one of these
-% form(box(all,y)). <- uncomment one of these
+% form(box(all,x)).  % <- uncomment one of these
+% form(box(all,y)).  %  <- uncomment one of these
 
 
 % % % % % % % % % % %
