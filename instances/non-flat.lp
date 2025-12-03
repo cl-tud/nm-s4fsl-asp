@@ -3,21 +3,25 @@
 % % % % % % % % % % %
 
 %  y -> x
-transform(implies(y,x)).  
+% transform(implies(y,x)).  
+
+% prereqfreedefault(all,neg(p),neg(p)).
+prereqfreedefault(all,neg(p),neg(p)).
+default(s3,a, neg(y),p).
+
 
 % Box_s1[(a and b): -x / p]
-default(s1,and(a,b),neg(x),p).
+% default(s1,and(a,b),neg(x),p).
 
 
 % Box_s2[(a and b) or (a and c) or (b and c): -x / p]
-default(s2, neg(and(and(neg(and(a,b)), neg(and(a,c))),  neg(and(b,c)))), neg(x), p).
+% default(s2, neg(and(and(neg(and(a,b)), neg(and(a,c))),  neg(and(b,c)))), neg(x), p).
 
 % this doesn't work
 % default(s2,transform(or(transform(or(and(a,b),and(a,c))),and(b,c))),neg(x),p).
 
 
 % Box_s3[a and (b or c): -y / p]
-default(s3,and(a,neg(and(neg(b),neg(c)))), neg(y),p).
 
 % this doesn't work
 % default(s3,and(a,transform(or(b,c))), neg(y),p).
@@ -50,9 +54,7 @@ succ(s2,s3).
 
 form(box(all,a)).
 % form(box(all,b)).
-form(box(all,c)).
+% form(box(all,c)).
 
 % form(box(all,x)).  % <- uncomment one of these
 % form(box(all,y)).  %  <- uncomment one of these
-
-% :- not known(box(s1,p)).

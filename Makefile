@@ -12,6 +12,7 @@ ENCODING = sffsmm.lp theta.lp propsat.lp unknown.lp ordering.lp standpoints.lp m
 # ONE = instances/potential-error.lp
 # ONE = instances/check-defaults-plain.lp
 ONE = instances/pcos-diagnosis-sh.lp
+# ONE = instances/two-extensions.lp
 
 # ONE = instances/asp.lp
 # ONE = instances/coffee.lp
