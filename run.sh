@@ -3,18 +3,19 @@
 CLINGO="$1"
 INSTANCE="$2"
 
-# fixed encoding list
+DIR="$(cd "$(dirname "$0")" && pwd)"
+
 ENCODING=(
-    sffsmm.lp
-    theta.lp
-    propsat.lp
-    unknown.lp
-    ordering.lp
-    standpoints.lp
-    minimality.lp
-    transform.lp
-    # defaults.lp
-    more-defaults.lp
+    "$DIR/sffsmm.lp"
+    "$DIR/theta.lp"
+    "$DIR/propsat.lp"
+    "$DIR/unknown.lp"
+    "$DIR/ordering.lp"
+    "$DIR/standpoints.lp"
+    "$DIR/minimality.lp"
+    "$DIR/transform.lp"
+    # "$DIR/defaults.lp"
+    "$DIR/more-defaults.lp"
 )
 
 if [ -z "$CLINGO" ] || [ -z "$INSTANCE" ]; then
@@ -22,14 +23,14 @@ if [ -z "$CLINGO" ] || [ -z "$INSTANCE" ]; then
     exit 1
 fi
 
-out=$("$CLINGO" -n 1 --quiet=1,2 "${ENCODING[@]}" "$INSTANCE" 2>&1)
+out=$("$CLINGO" -n 1 --quiet=2,2 --outf=0 "${ENCODING[@]}" "$INSTANCE" 2>&1)
 status=$?
 
-if [ $status -ne 0 ]; then
-    echo "ERROR (clingo exit $status)"
-    echo "$out"
-    exit $status
-fi
+# if [ $status -ne 0 ]; then
+#     echo "ERROR (clingo exit $status)"
+#     echo "$out"
+#     exit $status
+# fi
 
 if echo "$out" | grep -q "UNSATISFIABLE"; then
     echo "NO"
