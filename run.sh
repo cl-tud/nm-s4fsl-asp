@@ -13,7 +13,8 @@ ENCODING=(
     standpoints.lp
     minimality.lp
     transform.lp
-    defaults.lp
+    # defaults.lp
+    more-defaults.lp
 )
 
 if [ -z "$CLINGO" ] || [ -z "$INSTANCE" ]; then
