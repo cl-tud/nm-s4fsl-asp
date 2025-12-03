@@ -22,7 +22,14 @@ if [ -z "$CLINGO" ] || [ -z "$INSTANCE" ]; then
     exit 1
 fi
 
-out=$("$CLINGO" -n 1 --quiet=1,2 "${ENCODING[@]}" "$INSTANCE" 2>/dev/null)
+out=$("$CLINGO" -n 1 --quiet=1,2 "${ENCODING[@]}" "$INSTANCE" 2>&1)
+status=$?
+
+if [ $status -ne 0 ]; then
+    echo "ERROR (clingo exit $status)"
+    echo "$out"
+    exit $status
+fi
 
 if echo "$out" | grep -q "UNSATISFIABLE"; then
     echo "NO"
@@ -34,5 +41,6 @@ if echo "$out" | grep -q "SATISFIABLE"; then
     exit 0
 fi
 
-echo "ERROR"
+echo "ERROR (unexpected solver output)"
+echo "$out"
 exit 1
