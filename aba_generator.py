@@ -4,6 +4,11 @@ import random, os, csv, shutil
 
 UNIVERSAL_STANDPOINT = 'all'
 
+OUTPUT_METADATA = '/home/piotr/Dresden/ms-dis-nmr-experiments/dependencies/instances_metadata.csv'
+OUTPUT_INSTANCES_MSDIS = '/home/piotr/Dresden/ms-dis-nmr-experiments/dependencies/instances/msdis'
+
+OUTPUT_INSTANCES_NMSL = '/home/piotr/Dresden/ms-dis-nmr-experiments/dependencies/instances/nmsl'
+
 @dataclass
 class Rule:
     head: str
@@ -97,19 +102,28 @@ def _sp_suffix(sp: str) -> str:
 
 def to_asp_with_standpoints(fr: ABAFramework) -> str:
     lines = []
+    sorted_assumptions = sorted(fr.assumptions)
 
     # assumptions
     if fr.assumptions:
         lines.append(
-            "assumption(" + ";".join(sorted(fr.assumptions)) + ")."
+            "assumption("
+            + ";".join(
+                f"{a}_{_sp_suffix(sp)}"
+                for sp in fr.standpoints
+                for a in sorted_assumptions
+            )
+            + ")."
         )
         lines.append("")
 
-    # contraries (unindexed)
-    for a in sorted(fr.assumptions):
-        c = fr.contrary.get(a)
-        if c is not None:
-            lines.append(f"contrary({a},{c}).")
+    # contraries with standpoint index
+    for sp in fr.standpoints:
+        suf = _sp_suffix(sp)
+        for a in sorted_assumptions:
+            c = fr.contrary.get(a)
+            if c is not None:
+                lines.append(f"contrary({a}_{suf},{c}_{suf}).")
     lines.append("")
 
     # rules with standpoint index
@@ -201,12 +215,40 @@ def _pick_goals(framework: ABAFramework, count: int) -> List[Tuple[str, str]]:
     return candidates[:count]
 
 
+def _nested_and(terms: List[str]) -> str:
+    """Create nested and(...) structure from list of terms."""
+    if not terms:
+        raise ValueError("Cannot create and from empty list")
+    if len(terms) == 1:
+        return terms[0]
+    # Build right-associative: and(t1, and(t2, and(t3, t4)))
+    result = terms[-1]
+    for term in reversed(terms[:-1]):
+        result = f"and({term},{result})"
+    return result
+
+
 def aba_to_standpoint_default_asp(
     F: ABAFramework,
     facts_by_sp: Dict[str, Set[str]],
 ) -> str:
     lines: List[str] = []
     seen_facts: Set[Tuple[str, str]] = set()  # (standpoint, fact)
+
+    # Generate succ/2 for atoms
+    sorted_atoms = sorted(F.atoms)
+    if len(sorted_atoms) > 1:
+        lines.append("% Atom ordering")
+        for i in range(len(sorted_atoms) - 1):
+            lines.append(f"succ({sorted_atoms[i]},{sorted_atoms[i+1]}).")
+        lines.append("")
+    
+    # Generate succ/2 for standpoints
+    if len(F.standpoints) > 1:
+        lines.append("% Standpoint ordering")
+        for i in range(len(F.standpoints) - 1):
+            lines.append(f"succ({F.standpoints[i]},{F.standpoints[i+1]}).")
+        lines.append("")
 
     # facts
     for S, facts in facts_by_sp.items():
@@ -234,21 +276,31 @@ def aba_to_standpoint_default_asp(
             lines.append(f"form(box({S},{R})).")
             continue
 
-        # no assumptions ⇒ strict rule
-        if not asm:
-            P = _and_term(nonasm)
-            lines.append(f"strictRule({S},{P},{R}).")
-            continue
-
-        # default with assumptions
-        n = len(asm)
-        if nonasm:
-            P = _and_term(nonasm)
-            qs = ",".join(asm)
-            lines.append(f"default{n}({S},{P},{qs},{R}).")
+        # Build body: combine non-assumptions and assumptions
+        body_terms = []
+        
+        # Non-assumptions: box(S,a)
+        for a in nonasm:
+            body_terms.append(f"box({S},{a})")
+        
+        # Assumptions: box(S,neg(box(S,neg(a))))
+        for a in asm:
+            body_terms.append(f"box({S},neg(box({S},neg({a}))))")
+        
+        # Combine all body terms into nested and
+        A = _nested_and(body_terms)
+        
+        # Rule as implication: A -> B becomes neg(and(A, neg(known(box(S,B)))))
+        B = f"box({S},{R})"
+        formula = f"neg(and({A},neg(known({B}))))"
+        
+        # Add readable comment showing original rule
+        body_strs = r.body_nonasm + r.body_asm
+        if body_strs:
+            lines.append(f"% {r.head} <- {', '.join(body_strs)} @ {S}")
         else:
-            qs = ",".join(asm)
-            lines.append(f"default{n}NoPrem({S},{qs},{R}).")
+            lines.append(f"% {r.head} @ {S}")
+        lines.append(f"form({formula}).")
 
     return "\n".join(lines)
 
@@ -261,10 +313,10 @@ if __name__ == "__main__":
         (20, 0.4, 4, 4, 5),
     ]
 
-    out_aba = "instances_aba"
-    out_sd = "instances_sd"
-    _clear_dir(out_aba)
-    _clear_dir(out_sd)
+    # out_aba = "instances_aba"
+    # out_sd = "instances_sd"
+    _clear_dir(OUTPUT_INSTANCES_MSDIS)
+    _clear_dir(OUTPUT_INSTANCES_NMSL)
 
     rows = [["instance", "instance_raw", "goal", "standpoint"]]
 
@@ -291,18 +343,18 @@ if __name__ == "__main__":
             instance_name = f"instance_{i}_{suffix}.lp"
 
             aba_goal_lines = [enc_aba, *(_goal_fact(sp, head))]
-            aba_goal_path = os.path.join(out_aba, instance_name)
+            aba_goal_path = os.path.join(OUTPUT_INSTANCES_MSDIS, instance_name)
             with open(aba_goal_path, "w") as f:
                 f.write("\n".join(aba_goal_lines))
 
             sd_goal_lines = [enc_sd, _goal_constraint(sp, head)]
-            sd_goal_path = os.path.join(out_sd, instance_name)
+            sd_goal_path = os.path.join(OUTPUT_INSTANCES_NMSL, instance_name)
             with open(sd_goal_path, "w") as f:
                 f.write("\n".join(sd_goal_lines))
 
 
             rows.append([instance_name, f"instance_{i}", _norm(head), sp])
 
-    with open("instances_metadata.csv", "w", newline="") as csvfile:
+    with open(OUTPUT_METADATA, "w", newline="") as csvfile:
         writer = csv.writer(csvfile)
         writer.writerows(rows)

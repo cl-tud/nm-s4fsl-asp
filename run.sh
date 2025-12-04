@@ -14,8 +14,7 @@ ENCODING=(
     "$DIR/standpoints.lp"
     "$DIR/minimality.lp"
     "$DIR/transform.lp"
-    # "$DIR/defaults.lp"
-    "$DIR/more-defaults.lp"
+    "$DIR/defaults.lp"
 )
 
 if [ -z "$CLINGO" ] || [ -z "$INSTANCE" ]; then
